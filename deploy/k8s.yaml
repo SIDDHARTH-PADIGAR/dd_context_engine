@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dd-context-engine
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dd-context-engine
+  template:
+    metadata:
+      labels:
+        app: dd-context-engine
+    spec:
+      containers:
+        - name: context-engine
+          image: dd-context-engine:0.1.0
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DD_ENVIRONMENT
+              value: production
+            - name: DD_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: dd-context-db
+                  key: database-url
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dd-context-engine
+spec:
+  selector:
+    app: dd-context-engine
+  ports:
+    - port: 80
+      targetPort: 8000

@@ -1,0 +1,25 @@
+digraph G {
+  rankdir=LR;
+  graph [bgcolor="white", nodesep=0.35, ranksep=0.55];
+  node [shape=box, style="rounded", fontname="Arial", fontsize=10];
+  edge [fontname="Arial", fontsize=9];
+  sources [label="Client sources\nERP / AP / invoices / POs / email / contracts / sheets"];
+  ingest [label="Ingestion gateway\ncanonical envelope + idempotency"];
+  raw [label="Immutable evidence metadata\nobject-storage URI + provenance"];
+  extract [label="Extraction + entity resolution\nreplaceable model adapters"];
+  state [label="Authoritative durable state\nversioned assertions + workflow"];
+  search [label="Search indexes\nlexical / vector / metadata"];
+  graph_layer [label="Optional graph projection\nderived relationships only"];
+  context [label="Context assembly\nbounded task-specific bundle"];
+  tools [label="Typed tool gateway\npolicy boundary"];
+  agent [label="Autonomous agent\nreason + tool use"];
+  updates [label="Durable updates\noutbox + checkpoints"];
+  sources -> ingest -> raw -> extract -> state;
+  state -> search;
+  state -> graph_layer;
+  state -> context;
+  search -> context;
+  graph_layer -> context;
+  context -> tools -> agent -> updates;
+  updates -> state;
+}
