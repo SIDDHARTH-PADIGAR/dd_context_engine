@@ -24,6 +24,7 @@ from dd_context_engine.storage.models import (
 class PostgresEvidenceRepository:
     async def put_envelope(self, envelope: EvidenceEnvelope) -> bool:
         values = envelope.model_dump()
+        values["metadata_"] = values.pop("metadata")
         async with session_factory() as session:
             stmt = insert(SourceRecord).values(**values).on_conflict_do_nothing(
                 constraint="uq_source_tenant_id"
@@ -62,8 +63,13 @@ class PostgresEvidenceRepository:
             )
             rows = (await session.execute(stmt)).scalars().all()
             return [
-                EvidenceSpan.model_validate(
-                    row.__dict__ | {"span_id": row.span_id}
+                EvidenceSpan(
+                    span_id=row.span_id,
+                    tenant_id=row.tenant_id,
+                    source_id=row.source_id,
+                    start_offset=row.start_offset,
+                    end_offset=row.end_offset,
+                    text=row.text,
                 )
                 for row in rows
             ]
@@ -103,8 +109,24 @@ class PostgresAssertionRepository:
             stmt = stmt.order_by(AssertionRecord.recorded_at.desc()).limit(limit)
             rows = (await session.execute(stmt)).scalars().all()
             return [
-                CommercialAssertion.model_validate(
-                    row.__dict__ | {"assertion_id": row.assertion_id}
+                CommercialAssertion(
+                    assertion_id=row.assertion_id,
+                    tenant_id=row.tenant_id,
+                    entity_id=row.entity_id,
+                    attribute=row.attribute,
+                    value=row.value,
+                    unit=row.unit,
+                    scope=row.scope,
+                    valid_from=row.valid_from,
+                    valid_to=row.valid_to,
+                    recorded_at=row.recorded_at,
+                    status=row.status,
+                    confidence=row.confidence,
+                    source_id=row.source_id,
+                    evidence_span_id=row.evidence_span_id,
+                    extractor_name=row.extractor_name,
+                    extractor_version=row.extractor_version,
+                    supersedes_assertion_id=row.supersedes_assertion_id,
                 )
                 for row in rows
             ]
@@ -120,7 +142,22 @@ class PostgresWorkflowRepository:
             row = (await session.execute(stmt)).scalar_one_or_none()
             if row is None:
                 return None
-            return WorkflowState.model_validate(row.__dict__)
+            return WorkflowState(
+                case_id=row.case_id,
+                tenant_id=row.tenant_id,
+                stage=row.stage,
+                goal=row.goal,
+                completed_steps=row.completed_steps,
+                pending_steps=row.pending_steps,
+                unresolved_conflicts=row.unresolved_conflicts,
+                tool_results=row.tool_results,
+                approval_state=row.approval_state,
+                checkpoint=row.checkpoint,
+                retry_count=row.retry_count,
+                model_version=row.model_version,
+                prompt_version=row.prompt_version,
+                updated_at=row.updated_at,
+            )
 
     async def put(self, state: WorkflowState) -> None:
         values = state.model_dump()
