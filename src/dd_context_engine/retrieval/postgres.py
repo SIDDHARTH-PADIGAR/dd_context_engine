@@ -3,18 +3,21 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 
 from dd_context_engine.domain.schemas import (
     CommercialAssertion,
+    EvidenceEmbedding,
     EvidenceEnvelope,
     EvidenceSpan,
+    RetrievalHit,
     WorkflowState,
 )
 from dd_context_engine.storage.db import session_factory
 from dd_context_engine.storage.models import (
     AssertionRecord,
+    EvidenceEmbeddingRecord,
     EvidenceSpanRecord,
     SourceRecord,
     WorkflowStateRecord,
@@ -67,6 +70,7 @@ class PostgresEvidenceRepository:
                 )
                 .limit(limit)
             )
+
             rows = (await session.execute(stmt)).scalars().all()
 
             return [
@@ -88,9 +92,12 @@ class PostgresAssertionRepository:
 
         async with session_factory() as session:
             async with session.begin():
-                stmt = insert(AssertionRecord).values(**values).on_conflict_do_nothing(
+                stmt = insert(
+                    AssertionRecord
+                ).values(**values).on_conflict_do_nothing(
                     constraint="uq_assertion_tenant_id"
                 )
+
                 result = await session.execute(stmt)
 
                 if not result.rowcount:
@@ -166,12 +173,17 @@ class PostgresAssertionRepository:
 
 
 class PostgresWorkflowRepository:
-    async def get(self, tenant_id: str, case_id: str) -> WorkflowState | None:
+    async def get(
+        self,
+        tenant_id: str,
+        case_id: str,
+    ) -> WorkflowState | None:
         async with session_factory() as session:
             stmt = select(WorkflowStateRecord).where(
                 WorkflowStateRecord.tenant_id == tenant_id,
                 WorkflowStateRecord.case_id == case_id,
             )
+
             row = (await session.execute(stmt)).scalar_one_or_none()
 
             if row is None:
@@ -214,3 +226,140 @@ class PostgresWorkflowRepository:
 
             await session.execute(stmt)
             await session.commit()
+
+
+class PostgresRetrievalRepository:
+    async def lexical_search(
+        self,
+        tenant_id: str,
+        query: str,
+        limit: int,
+    ) -> list[RetrievalHit]:
+        query = query.strip()
+
+        if not query:
+            return []
+
+        if limit < 1:
+            raise ValueError("limit must be >= 1")
+
+        statement = text(
+            """
+            SELECT
+                span_id,
+                tenant_id,
+                source_id,
+                text,
+                ts_rank_cd(
+                    search_vector,
+                    websearch_to_tsquery('simple', :query)
+                ) AS score
+            FROM evidence_span
+            WHERE tenant_id = :tenant_id
+              AND search_vector @@ websearch_to_tsquery('simple', :query)
+            ORDER BY score DESC, span_id
+            LIMIT :limit
+            """
+        )
+
+        async with session_factory() as session:
+            result = await session.execute(
+                statement,
+                {
+                    "tenant_id": tenant_id,
+                    "query": query,
+                    "limit": limit,
+                },
+            )
+
+            return [
+                RetrievalHit(
+                    span_id=row.span_id,
+                    tenant_id=row.tenant_id,
+                    source_id=row.source_id,
+                    text=row.text,
+                    score=float(row.score),
+                )
+                for row in result
+            ]
+
+    async def put_embedding(
+        self,
+        embedding: EvidenceEmbedding,
+    ) -> bool:
+        values = embedding.model_dump()
+
+        async with session_factory() as session:
+            stmt = insert(
+                EvidenceEmbeddingRecord
+            ).values(**values).on_conflict_do_nothing(
+                constraint="uq_embedding_tenant_span_model"
+            )
+
+            result = await session.execute(stmt)
+            await session.commit()
+
+            return bool(result.rowcount)
+
+    async def semantic_search(
+        self,
+        tenant_id: str,
+        query_embedding: list[float],
+        model_name: str,
+        model_version: str,
+        limit: int,
+    ) -> list[RetrievalHit]:
+        if not query_embedding:
+            return []
+
+        if limit < 1:
+            raise ValueError("limit must be >= 1")
+
+        distance = EvidenceEmbeddingRecord.embedding.cosine_distance(
+            query_embedding
+        )
+
+        stmt = (
+            select(
+                EvidenceEmbeddingRecord.span_id,
+                EvidenceEmbeddingRecord.tenant_id,
+                EvidenceSpanRecord.source_id,
+                EvidenceSpanRecord.text,
+                distance.label("distance"),
+            )
+            .join(
+                EvidenceSpanRecord,
+                (
+                    EvidenceEmbeddingRecord.tenant_id
+                    == EvidenceSpanRecord.tenant_id
+                )
+                & (
+                    EvidenceEmbeddingRecord.span_id
+                    == EvidenceSpanRecord.span_id
+                ),
+            )
+            .where(
+                EvidenceEmbeddingRecord.tenant_id == tenant_id,
+                EvidenceEmbeddingRecord.model_name == model_name,
+                EvidenceEmbeddingRecord.model_version == model_version,
+            )
+            .order_by(
+                distance,
+                EvidenceEmbeddingRecord.span_id,
+            )
+            .limit(limit)
+        )
+
+        async with session_factory() as session:
+            rows = (await session.execute(stmt)).all()
+
+            return [
+                RetrievalHit(
+                    span_id=row.span_id,
+                    tenant_id=row.tenant_id,
+                    source_id=row.source_id,
+                    text=row.text,
+                    score=1.0 - float(row.distance),
+                )
+                for row in rows
+            ]

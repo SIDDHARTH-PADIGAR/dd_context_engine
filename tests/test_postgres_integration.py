@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -33,7 +33,7 @@ async def test_postgres_context_flow():
     span_id = uuid4()
     assertion_id = uuid4()
     case_id = f"case-{uuid4()}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     evidence_repo = PostgresEvidenceRepository()
     assertion_repo = PostgresAssertionRepository()

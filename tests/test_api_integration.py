@@ -1,19 +1,163 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
 import pytest
+from sqlalchemy import delete
 
 from dd_context_engine.api.app import app
-from dd_context_engine.storage.db import engine, session_factory
+from dd_context_engine.storage.db import session_factory
 from dd_context_engine.storage.models import (
-    AssertionRecord,
+    EvidenceEmbeddingRecord,
     EvidenceSpanRecord,
     SourceRecord,
     WorkflowStateRecord,
 )
-from sqlalchemy import delete
 
+
+@pytest.mark.asyncio
+async def test_api_workflow_and_embedding_endpoints():
+    tenant_id = f"api-runtime-{uuid4()}"
+    case_id = f"case-{uuid4()}"
+    source_id = uuid4()
+    span_id = uuid4()
+    embedding_id = uuid4()
+    now = datetime.now(UTC)
+
+    transport = httpx.ASGITransport(app=app)
+
+    try:
+        async with httpx.AsyncClient(
+            transport=transport,
+            base_url="http://test",
+        ) as client:
+            evidence = await client.post(
+                "/v1/evidence",
+                json={
+                    "source_id": str(source_id),
+                    "tenant_id": tenant_id,
+                    "source_type": "email",
+                    "source_system": "api-runtime-test",
+                    "source_version": "1",
+                    "content_type": "text/plain",
+                    "content_uri": f"runtime://{source_id}",
+                    "observed_at": now.isoformat(),
+                    "ingested_at": now.isoformat(),
+                    "checksum_sha256": "c" * 64,
+                    "metadata": {},
+                    "permissions": {"visibility": "tenant"},
+                },
+            )
+
+            assert evidence.status_code == 202
+
+            span = await client.post(
+                "/v1/evidence/spans",
+                json={
+                    "span_id": str(span_id),
+                    "tenant_id": tenant_id,
+                    "source_id": str(source_id),
+                    "start_offset": 0,
+                    "end_offset": 20,
+                    "text": "Funding rate is 10%.",
+                },
+            )
+
+            assert span.status_code == 202
+
+            embedding = await client.post(
+                "/v1/evidence/embeddings",
+                json={
+                    "embedding_id": str(embedding_id),
+                    "tenant_id": tenant_id,
+                    "span_id": str(span_id),
+                    "model_name": "test-embedding",
+                    "model_version": "v1",
+                    "dimensions": 2,
+                    "embedding": [1.0, 0.0],
+                },
+            )
+
+            assert embedding.status_code == 202
+            assert embedding.json()["created"] is True
+
+            workflow = {
+                "tenant_id": tenant_id,
+                "case_id": case_id,
+                "stage": "analysis",
+                "goal": "Review funding terms",
+                "completed_steps": ["ingestion"],
+                "pending_steps": ["analysis"],
+                "unresolved_conflicts": [],
+                "tool_results": [],
+                "approval_state": None,
+                "checkpoint": "assertions_loaded",
+                "retry_count": 0,
+                "model_version": "test-model",
+                "prompt_version": "test-prompt",
+                "updated_at": now.isoformat(),
+            }
+
+            put_workflow = await client.put(
+                f"/v1/workflow/{tenant_id}/{case_id}",
+                json=workflow,
+            )
+
+            assert put_workflow.status_code == 200
+            assert put_workflow.json()["checkpoint"] == "assertions_loaded"
+
+            get_workflow = await client.get(
+                f"/v1/workflow/{tenant_id}/{case_id}",
+            )
+
+            assert get_workflow.status_code == 200
+            assert get_workflow.json()["stage"] == "analysis"
+
+            context = await client.post(
+                "/v1/context/compile",
+                json={
+                    "tenant_id": tenant_id,
+                    "case_id": case_id,
+                    "task": "What is the funding rate?",
+                    "query_embedding": [1.0, 0.0],
+                    "embedding_model": "test-embedding",
+                    "embedding_version": "v1",
+                    "max_assertions": 10,
+                    "max_evidence_items": 10,
+                },
+            )
+
+            assert context.status_code == 200
+            body = context.json()
+
+            assert body["workflow_state"]["checkpoint"] == "assertions_loaded"
+            assert len(body["evidence"]) == 1
+            assert body["evidence"][0]["text"] == "Funding rate is 10%."
+
+    finally:
+        async with session_factory() as session:
+            await session.execute(
+                delete(WorkflowStateRecord).where(
+                    WorkflowStateRecord.tenant_id == tenant_id
+                )
+            )
+            await session.execute(
+                delete(EvidenceEmbeddingRecord).where(
+                    EvidenceEmbeddingRecord.tenant_id == tenant_id
+                )
+            )
+            await session.execute(
+                delete(EvidenceSpanRecord).where(
+                    EvidenceSpanRecord.tenant_id == tenant_id
+                )
+            )
+            await session.execute(
+                delete(SourceRecord).where(
+                    SourceRecord.tenant_id == tenant_id
+                )
+            )
+            await session.commit()
+            
 
 @pytest.mark.asyncio
 async def test_api_end_to_end():
@@ -22,7 +166,7 @@ async def test_api_end_to_end():
     span_id = uuid4()
     assertion_id = uuid4()
     case_id = f"case-{uuid4()}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     transport = httpx.ASGITransport(app=app)
 
@@ -139,8 +283,8 @@ async def test_api_end_to_end():
                 )
             )
             await session.execute(
-                delete(AssertionRecord).where(
-                    AssertionRecord.tenant_id == tenant_id
+                delete(EvidenceEmbeddingRecord).where(
+                    EvidenceEmbeddingRecord.tenant_id == tenant_id
                 )
             )
             await session.execute(
@@ -154,4 +298,3 @@ async def test_api_end_to_end():
                 )
             )
             await session.commit()
-            await engine.dispose()

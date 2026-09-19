@@ -4,9 +4,11 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
+from pgvector.sqlalchemy import VECTOR
 from sqlalchemy import (
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     String,
@@ -376,4 +378,62 @@ class OutboxEvent(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+    )
+
+
+class EvidenceEmbeddingRecord(Base):
+    __tablename__ = "evidence_embedding"
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "span_id",
+            "model_name",
+            "model_version",
+            name="uq_embedding_tenant_span_model",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "span_id"],
+            ["evidence_span.tenant_id", "evidence_span.span_id"],
+            name="fk_embedding_span_tenant",
+        ),
+        Index(
+            "ix_embedding_tenant_model",
+            "tenant_id",
+            "model_name",
+            "model_version",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+    )
+    embedding_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        nullable=False,
+    )
+    tenant_id: Mapped[str] = mapped_column(
+        String(128),
+        nullable=False,
+    )
+    span_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        nullable=False,
+    )
+    model_name: Mapped[str] = mapped_column(
+        String(128),
+        nullable=False,
+    )
+    model_version: Mapped[str] = mapped_column(
+        String(128),
+        nullable=False,
+    )
+    dimensions: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    embedding: Mapped[list[float]] = mapped_column(
+        VECTOR(),
+        nullable=False,
     )

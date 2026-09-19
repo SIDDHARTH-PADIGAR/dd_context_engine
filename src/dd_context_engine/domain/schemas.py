@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
@@ -119,6 +120,81 @@ class ContextRequest(BaseModel):
     scope: dict[str, Any] = Field(default_factory=dict)
     max_assertions: int = Field(default=20, ge=1, le=200)
     max_evidence_items: int = Field(default=8, ge=1, le=100)
+    query_embedding: list[float] | None = Field(
+        default=None,
+        min_length=1,
+        max_length=2000,
+    )
+    embedding_model: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+    )
+    embedding_version: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+    )
+
+    @model_validator(mode="after")
+    def validate_embedding_metadata(self) -> ContextRequest:
+        embedding_fields = (
+            self.query_embedding,
+            self.embedding_model,
+            self.embedding_version,
+        )
+
+        if any(field is not None for field in embedding_fields):
+            if not all(field is not None for field in embedding_fields):
+                raise ValueError(
+                    "query_embedding, embedding_model and embedding_version "
+                    "must be provided together"
+                )
+
+            if not all(math.isfinite(value) for value in self.query_embedding):
+                raise ValueError("query_embedding must contain only finite values")
+
+            if not any(value != 0.0 for value in self.query_embedding):
+                raise ValueError("query_embedding must not be a zero vector")
+
+        return self
+
+
+class RetrievalHit(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    span_id: UUID
+    tenant_id: str = Field(min_length=1, max_length=128)
+    source_id: UUID
+    text: str = Field(min_length=1)
+    score: float
+
+
+class EvidenceEmbedding(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    embedding_id: UUID = Field(default_factory=uuid4)
+    tenant_id: str = Field(min_length=1, max_length=128)
+    span_id: UUID
+    model_name: str = Field(min_length=1, max_length=128)
+    model_version: str = Field(min_length=1, max_length=128)
+    dimensions: int = Field(ge=1, le=2000)
+    embedding: list[float] = Field(min_length=1, max_length=2000)
+
+    @model_validator(mode="after")
+    def validate_embedding(self) -> EvidenceEmbedding:
+        if self.dimensions != len(self.embedding):
+            raise ValueError(
+                "dimensions must match the embedding length"
+            )
+
+        if not all(math.isfinite(value) for value in self.embedding):
+            raise ValueError("embedding must contain only finite values")
+
+        if not any(value != 0.0 for value in self.embedding):
+            raise ValueError("embedding must not be a zero vector")
+
+        return self
 
 
 class ContextBundle(BaseModel):
