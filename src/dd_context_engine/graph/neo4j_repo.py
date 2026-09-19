@@ -23,5 +23,10 @@ class Neo4jRelationshipRepository:
         LIMIT $limit
         """
         async with self._driver.session() as session:
-            result = await session.run(query, tenant_id=tenant_id, entity_ids=entity_ids, limit=limit)
+            result = await session.run(
+                query,
+                tenant_id=tenant_id,
+                entity_ids=entity_ids,
+                limit=limit,
+            )
             return [record["path"] async for record in result]

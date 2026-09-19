@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -8,7 +8,7 @@ from dd_context_engine.domain.schemas import CommercialAssertion, EvidenceSpan
 
 
 def test_assertion_preserves_version_and_provenance():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     assertion = CommercialAssertion(
         tenant_id="tenant-a",
         entity_id="vendor-1",
@@ -26,7 +26,7 @@ def test_assertion_preserves_version_and_provenance():
 
 
 def test_invalid_interval_is_rejected():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     with pytest.raises(ValidationError):
         CommercialAssertion(
             tenant_id="tenant-a", entity_id="vendor-1", attribute="x", value=1,

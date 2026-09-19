@@ -1,7 +1,16 @@
 from __future__ import annotations
 
-from dd_context_engine.domain.schemas import CommercialAssertion, ContextBundle, ContextRequest
-from dd_context_engine.domain.ports import AssertionRepository, EvidenceRepository, RelationshipRepository, WorkflowRepository
+from dd_context_engine.domain.ports import (
+    AssertionRepository,
+    EvidenceRepository,
+    RelationshipRepository,
+    WorkflowRepository,
+)
+from dd_context_engine.domain.schemas import (
+    CommercialAssertion,
+    ContextBundle,
+    ContextRequest,
+)
 
 
 class ContextAssemblyService:

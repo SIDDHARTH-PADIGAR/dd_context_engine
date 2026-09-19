@@ -6,7 +6,6 @@ from uuid import UUID
 
 from dd_context_engine.domain.schemas import (
     CommercialAssertion,
-    ContextRequest,
     EvidenceEnvelope,
     EvidenceSpan,
     WorkflowState,
@@ -16,7 +15,12 @@ from dd_context_engine.domain.schemas import (
 class EvidenceRepository(Protocol):
     async def put_envelope(self, envelope: EvidenceEnvelope) -> bool: ...
     async def put_span(self, span: EvidenceSpan) -> bool: ...
-    async def get_for_sources(self, tenant_id: str, source_ids: list[UUID], limit: int) -> list[EvidenceSpan]: ...
+    async def get_for_sources(
+        self,
+        tenant_id: str,
+        source_ids: list[UUID],
+        limit: int,
+    ) -> list[EvidenceSpan]: ...
 
 
 class AssertionRepository(Protocol):

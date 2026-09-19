@@ -1,16 +1,26 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from sqlalchemy import text
 
 from dd_context_engine.config import settings
 from dd_context_engine.context.compiler import ContextAssemblyService
-from dd_context_engine.domain.schemas import CommercialAssertion, ContextBundle, ContextRequest, EvidenceEnvelope, EvidenceSpan
+from dd_context_engine.domain.schemas import (
+    CommercialAssertion,
+    ContextBundle,
+    ContextRequest,
+    EvidenceEnvelope,
+    EvidenceSpan,
+)
 from dd_context_engine.storage.db import engine
-from dd_context_engine.storage.postgres import PostgresAssertionRepository, PostgresEvidenceRepository, PostgresWorkflowRepository
+from dd_context_engine.storage.postgres import (
+    PostgresAssertionRepository,
+    PostgresEvidenceRepository,
+    PostgresWorkflowRepository,
+)
 
 
 @asynccontextmanager
@@ -65,4 +75,4 @@ async def compile_context(request: ContextRequest) -> ContextBundle:
 
 @app.get("/version")
 async def version() -> dict[str, str]:
-    return {"version": app.version, "checked_at": datetime.now(timezone.utc).isoformat()}
+    return {"version": app.version, "checked_at": datetime.now(UTC).isoformat()}

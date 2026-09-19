@@ -1,17 +1,22 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
 
 from dd_context_engine.context.compiler import ContextAssemblyService
-from dd_context_engine.domain.schemas import CommercialAssertion, ContextRequest, EvidenceSpan, WorkflowState
+from dd_context_engine.domain.schemas import (
+    CommercialAssertion,
+    ContextRequest,
+    EvidenceSpan,
+    WorkflowState,
+)
 
 
 class WorkflowRepo:
     async def get(self, tenant_id, case_id):
         return WorkflowState(
             case_id=case_id, tenant_id=tenant_id, stage="analysis", goal="inspect",
-            model_version="model-1", prompt_version="prompt-1", updated_at=datetime.now(timezone.utc)
+            model_version="model-1", prompt_version="prompt-1", updated_at=datetime.now(UTC)
         )
 
 
@@ -20,7 +25,11 @@ class AssertionRepo:
         self.items = items
 
     async def find(self, tenant_id, entity_id, at_time, limit):
-        return [a for a in self.items if a.tenant_id == tenant_id and a.entity_id == entity_id][:limit]
+        return [
+            a
+            for a in self.items
+            if a.tenant_id == tenant_id and a.entity_id == entity_id
+        ][:limit]
 
 
 class EvidenceRepo:
@@ -29,12 +38,16 @@ class EvidenceRepo:
 
     async def get_for_sources(self, tenant_id, source_ids, limit):
         allowed = set(source_ids)
-        return [s for s in self.spans if s.tenant_id == tenant_id and s.source_id in allowed][:limit]
+        return [
+            s
+            for s in self.spans
+            if s.tenant_id == tenant_id and s.source_id in allowed
+        ][:limit]
 
 
 @pytest.mark.asyncio
 async def test_context_bundle_is_bounded_and_surfaces_conflict():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     source = uuid4()
     assertions = [
         CommercialAssertion(
@@ -49,7 +62,11 @@ async def test_context_bundle_is_bounded_and_surfaces_conflict():
     evidence = [EvidenceSpan(
         tenant_id="t1", source_id=source, start_offset=0, end_offset=12, text="Rate is 10%."
     )]
-    service = ContextAssemblyService(WorkflowRepo(), AssertionRepo(assertions), EvidenceRepo(evidence))
+    service = ContextAssemblyService(
+        WorkflowRepo(),
+        AssertionRepo(assertions),
+        EvidenceRepo(evidence),
+    )
 
     bundle = await service.build(ContextRequest(
         tenant_id="t1", case_id="case-1", task="inspect", entity_id="v1", max_assertions=2

@@ -6,9 +6,19 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
-from dd_context_engine.domain.schemas import CommercialAssertion, EvidenceEnvelope, EvidenceSpan, WorkflowState
+from dd_context_engine.domain.schemas import (
+    CommercialAssertion,
+    EvidenceEnvelope,
+    EvidenceSpan,
+    WorkflowState,
+)
 from dd_context_engine.storage.db import session_factory
-from dd_context_engine.storage.models import AssertionRecord, EvidenceSpanRecord, SourceRecord, WorkflowStateRecord
+from dd_context_engine.storage.models import (
+    AssertionRecord,
+    EvidenceSpanRecord,
+    SourceRecord,
+    WorkflowStateRecord,
+)
 
 
 class PostgresEvidenceRepository:
@@ -32,18 +42,31 @@ class PostgresEvidenceRepository:
             await session.commit()
             return bool(result.rowcount)
 
-    async def get_for_sources(self, tenant_id: str, source_ids: list[UUID], limit: int) -> list[EvidenceSpan]:
+    async def get_for_sources(
+        self,
+        tenant_id: str,
+        source_ids: list[UUID],
+        limit: int,
+    ) -> list[EvidenceSpan]:
         if not source_ids:
             return []
         async with session_factory() as session:
             stmt = (
                 select(EvidenceSpanRecord)
-                .where(EvidenceSpanRecord.tenant_id == tenant_id, EvidenceSpanRecord.source_id.in_(source_ids))
+                .where(
+                    EvidenceSpanRecord.tenant_id == tenant_id,
+                    EvidenceSpanRecord.source_id.in_(source_ids),
+                )
                 .order_by(EvidenceSpanRecord.source_id, EvidenceSpanRecord.start_offset)
                 .limit(limit)
             )
             rows = (await session.execute(stmt)).scalars().all()
-            return [EvidenceSpan.model_validate(row.__dict__ | {"span_id": row.span_id}) for row in rows]
+            return [
+                EvidenceSpan.model_validate(
+                    row.__dict__ | {"span_id": row.span_id}
+                )
+                for row in rows
+            ]
 
 
 class PostgresAssertionRepository:
@@ -71,12 +94,20 @@ class PostgresAssertionRepository:
             )
             if at_time is not None:
                 stmt = stmt.where(
-                    (AssertionRecord.valid_from.is_(None) | (AssertionRecord.valid_from <= at_time)),
+                    (
+                        AssertionRecord.valid_from.is_(None)
+                        | (AssertionRecord.valid_from <= at_time)
+                    ),
                     (AssertionRecord.valid_to.is_(None) | (at_time < AssertionRecord.valid_to)),
                 )
             stmt = stmt.order_by(AssertionRecord.recorded_at.desc()).limit(limit)
             rows = (await session.execute(stmt)).scalars().all()
-            return [CommercialAssertion.model_validate(row.__dict__ | {"assertion_id": row.assertion_id}) for row in rows]
+            return [
+                CommercialAssertion.model_validate(
+                    row.__dict__ | {"assertion_id": row.assertion_id}
+                )
+                for row in rows
+            ]
 
 
 class PostgresWorkflowRepository:

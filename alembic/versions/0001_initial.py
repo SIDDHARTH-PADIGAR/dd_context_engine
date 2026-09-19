@@ -1,6 +1,7 @@
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "0001_initial"
 down_revision = None
@@ -27,8 +28,6 @@ def upgrade() -> None:
         sa.UniqueConstraint("tenant_id", "source_id", name="uq_source_tenant_id"),
         sa.UniqueConstraint("source_id", name="uq_source_id"),
     )
-    op.create_index("ix_source_record_tenant_id", "source_record", ["tenant_id"])
-
     op.create_table(
         "evidence_span",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),

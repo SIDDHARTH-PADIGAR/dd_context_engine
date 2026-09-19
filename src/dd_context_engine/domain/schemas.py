@@ -55,7 +55,7 @@ class EvidenceSpan(BaseModel):
     text: str = Field(min_length=1)
 
     @model_validator(mode="after")
-    def validate_offsets(self) -> "EvidenceSpan":
+    def validate_offsets(self) -> EvidenceSpan:
         if self.end_offset < self.start_offset:
             raise ValueError("end_offset must be >= start_offset")
         return self
@@ -83,7 +83,7 @@ class CommercialAssertion(BaseModel):
     supersedes_assertion_id: UUID | None = None
 
     @model_validator(mode="after")
-    def validate_interval(self) -> "CommercialAssertion":
+    def validate_interval(self) -> CommercialAssertion:
         if self.valid_from and self.valid_to and self.valid_to <= self.valid_from:
             raise ValueError("valid_to must be after valid_from")
         return self
