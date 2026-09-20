@@ -1,0 +1,227 @@
+{
+  "status": "PASS",
+  "generated_at": "2026-09-20T13:45:14.322772+00:00",
+  "tenant": "validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6",
+  "scenario": {
+    "sources": 6,
+    "spans": 6,
+    "assertions": 3,
+    "embeddings": 6
+  },
+  "checks": [
+    {
+      "name": "health",
+      "passed": true,
+      "detail": "{'status': 'ok'}"
+    },
+    {
+      "name": "database readiness",
+      "passed": true,
+      "detail": "{\"status\":\"ready\"}"
+    },
+    {
+      "name": "source inserted",
+      "passed": true,
+      "detail": "{'source_id': 'ae7dbce4-2e99-4434-9c67-d62f98dac398', 'created': True}"
+    },
+    {
+      "name": "span inserted",
+      "passed": true,
+      "detail": "{'span_id': '935d15d0-d3ca-4757-83e0-198619101e88', 'created': True}"
+    },
+    {
+      "name": "embedding inserted",
+      "passed": true,
+      "detail": "{'embedding_id': 'a3878e24-a962-47ca-bac9-e984120e667a', 'created': True}"
+    },
+    {
+      "name": "source inserted",
+      "passed": true,
+      "detail": "{'source_id': '42e50438-ed0f-4d67-a4d7-f69754ee444b', 'created': True}"
+    },
+    {
+      "name": "span inserted",
+      "passed": true,
+      "detail": "{'span_id': '66756184-4669-4407-87a4-4ac339032f4a', 'created': True}"
+    },
+    {
+      "name": "embedding inserted",
+      "passed": true,
+      "detail": "{'embedding_id': '2ed13eeb-4e6b-4c4b-8f36-fca2f3f39fc2', 'created': True}"
+    },
+    {
+      "name": "source inserted",
+      "passed": true,
+      "detail": "{'source_id': '8a5a79f2-f721-4b67-a523-0752cd17bb3d', 'created': True}"
+    },
+    {
+      "name": "span inserted",
+      "passed": true,
+      "detail": "{'span_id': '6500ec7b-d6a6-4687-af72-e391f4577600', 'created': True}"
+    },
+    {
+      "name": "embedding inserted",
+      "passed": true,
+      "detail": "{'embedding_id': 'd4fa8b72-c747-4c8c-a2f5-c8db37e088d5', 'created': True}"
+    },
+    {
+      "name": "source inserted",
+      "passed": true,
+      "detail": "{'source_id': 'bd1bd48d-0721-42b5-be0a-ce5b52ebe888', 'created': True}"
+    },
+    {
+      "name": "span inserted",
+      "passed": true,
+      "detail": "{'span_id': 'd50d309f-dcd8-4c06-8d7f-f194f19b6d2f', 'created': True}"
+    },
+    {
+      "name": "embedding inserted",
+      "passed": true,
+      "detail": "{'embedding_id': '459ff7d4-53b1-4186-ac56-75b6dafb6c88', 'created': True}"
+    },
+    {
+      "name": "source inserted",
+      "passed": true,
+      "detail": "{'source_id': '2c02bf80-2464-411a-bc2e-d5dc861bf1e2', 'created': True}"
+    },
+    {
+      "name": "span inserted",
+      "passed": true,
+      "detail": "{'span_id': 'ffc667ff-5338-495f-89ad-23b79cbddb6e', 'created': True}"
+    },
+    {
+      "name": "embedding inserted",
+      "passed": true,
+      "detail": "{'embedding_id': 'ee6ec82a-798d-4496-b67f-fc4c132aa0bd', 'created': True}"
+    },
+    {
+      "name": "source inserted",
+      "passed": true,
+      "detail": "{'source_id': '260f9655-1fe9-47da-bdcd-d1e41da90ce3', 'created': True}"
+    },
+    {
+      "name": "span inserted",
+      "passed": true,
+      "detail": "{'span_id': '2d2c401d-9af9-4539-8406-02e7408b7b57', 'created': True}"
+    },
+    {
+      "name": "embedding inserted",
+      "passed": true,
+      "detail": "{'embedding_id': '13d473f2-8795-4b4c-90ad-282b26574340', 'created': True}"
+    },
+    {
+      "name": "workflow write",
+      "passed": true,
+      "detail": "{\"case_id\":\"case-5584ec2d-48f1-47d0-a028-2e3f9ed0ccb4\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"stage\":\"analysis\",\"goal\":\"Determine the current funding terms\",\"completed_steps\":[\"ingestion\",\"extraction\"],\"pending_steps\":[\"context_review\"],\"unresolved_conflicts\":[],\"tool_results\":[],\"approval_state\":null,\"checkpoint\":\"assertions_loaded\",\"retry_count\":0,\"model_version\":\"validation-model\",\"prompt_version\":\"validation-prompt-v1\",\"updated_at\":\"2026-05-01T00:00:00Z\"}"
+    },
+    {
+      "name": "workflow persistence",
+      "passed": true,
+      "detail": "{\"case_id\":\"case-5584ec2d-48f1-47d0-a028-2e3f9ed0ccb4\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"stage\":\"analysis\",\"goal\":\"Determine the current funding terms\",\"completed_steps\":[\"ingestion\",\"extraction\"],\"pending_steps\":[\"context_review\"],\"unresolved_conflicts\":[],\"tool_results\":[],\"approval_state\":null,\"checkpoint\":\"assertions_loaded\",\"retry_count\":0,\"model_version\":\"validation-model\",\"prompt_version\":\"validation-prompt-v1\",\"updated_at\":\"2026-05-01T00:00:00Z\"}"
+    },
+    {
+      "name": "assertion creation",
+      "passed": true,
+      "detail": "{'assertion_id': '1934a966-5d4f-4e80-b94d-679aea1bee77', 'created': True} / {'assertion_id': '6e1ee8be-dc8b-498e-a080-fdd7ffa70e10', 'created': True}"
+    },
+    {
+      "name": "assertion idempotency",
+      "passed": true,
+      "detail": "{\"assertion_id\":\"6e1ee8be-dc8b-498e-a080-fdd7ffa70e10\",\"created\":false}"
+    },
+    {
+      "name": "current context compiles",
+      "passed": true,
+      "detail": "{\"case_id\":\"case-5584ec2d-48f1-47d0-a028-2e3f9ed0ccb4\",\"task\":\"What is the final funding rate after the amendment?\",\"workflow_state\":{\"case_id\":\"case-5584ec2d-48f1-47d0-a028-2e3f9ed0ccb4\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"stage\":\"analysis\",\"goal\":\"Determine the current funding terms\",\"completed_steps\":[\"ingestion\",\"extraction\"],\"pending_steps\":[\"context_review\"],\"unresolved_conflicts\":[],\"tool_results\":[],\"approval_state\":null,\"checkpoint\":\"assertions_loaded\",\"retry_count\":0,\"model_version\":\"validation-model\",\"prompt_version\":\"validation-prompt-v1\",\"updated_at\":\"2026-05-01T00:00:00Z\"},\"assertions\":[{\"assertion_id\":\"6e1ee8be-dc8b-498e-a080-fdd7ffa70e10\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"entity_id\":\"vendor-acme\",\"attribute\":\"funding_rate\",\"value\":0.12,\"unit\":null,\"scope\":{},\"valid_from\":\"2026-04-01T00:00:00Z\",\"valid_to\":null,\"recorded_at\":\"2026-04-15T00:00:00Z\",\"status\":\"active\",\"confidence\":null,\"source_id\":\"42e50438-ed0f-4d67-a4d7-f69754ee444b\",\"evidence_span_id\":\"66756184-4669-4407-87a4-4ac339032f4a\",\"extractor_name\":\"realworld-validation\",\"extractor_version\":\"1\",\"supersedes_assertion_id\":\"1934a966-5d4f-4e80-b94d-679aea1bee77\"},{\"assertion_id\":\"0d6340ac-438c-4925-9782-7c643a67eae8\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"entity_id\":\"vendor-acme\",\"attribute\":\"funding_rate\",\"value\":0.11,\"unit\":null,\"scope\":{},\"valid_from\":\"2026-04-01T00:00:00Z\",\"valid_to\":null,\"recorded_at\":\"2026-04-05T00:00:00Z\",\"status\":\"candidate\",\"confidence\":null,\"source_id\":\"bd1bd48d-0721-42b5-be0a-ce5b52ebe888\",\"evidence_span_id\":\"d50d309f-dcd8-4c06-8d7f-f194f19b6d2f\",\"extractor_name\":\"realworld-validation\",\"extractor_version\":\"1\",\"supersedes_assertion_id\":null}],\"evidence\":[{\"span_id\":\"66756184-4669-4407-87a4-4ac339032f4a\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"source_id\":\"42e50438-ed0f-4d67-a4d7-f69754ee444b\",\"start_offset\":0,\"end_offset\":65,\"text\":\"April amendment changes funding rate to 12% effective 2026-04-01.\"},{\"span_id\":\"6500ec7b-d6a6-4687-af72-e391f4577600\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"source_id\":\"8a5a79f2-f721-4b67-a523-0752cd17bb3d\",\"start_offset\":0,\"end_offset\":70,\"text\":\"Negotiation email confirms the final funding rate is 12% from April 1.\"},{\"span_id\":\"d50d309f-dcd8-4c06-8d7f-f194f19b6d2f\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"source_id\":\"bd1bd48d-0721-42b5-be0a-ce5b52ebe888\",\"start_offset\":0,\"end_offset\":55,\"text\":\"Earlier negotiation draft proposed an 11% funding rate.\"}],\"relationships\":[],\"conflicts\":[{\"entity_id\":\"vendor-acme\",\"attribute\":\"funding_rate\",\"unit\":null,\"scope\":{},\"assertion_ids\":[\"6e1ee8be-dc8b-498e-a080-fdd7ffa70e10\",\"0d6340ac-438c-4925-9782-7c643a67eae8\"]}],\"bounded\":true}"
+    },
+    {
+      "name": "current temporal correctness",
+      "passed": true,
+      "detail": "{0.12, 0.11}"
+    },
+    {
+      "name": "provenance survives context assembly",
+      "passed": true,
+      "detail": [
+        {
+          "assertion_id": "6e1ee8be-dc8b-498e-a080-fdd7ffa70e10",
+          "tenant_id": "validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6",
+          "entity_id": "vendor-acme",
+          "attribute": "funding_rate",
+          "value": 0.12,
+          "unit": null,
+          "scope": {},
+          "valid_from": "2026-04-01T00:00:00Z",
+          "valid_to": null,
+          "recorded_at": "2026-04-15T00:00:00Z",
+          "status": "active",
+          "confidence": null,
+          "source_id": "42e50438-ed0f-4d67-a4d7-f69754ee444b",
+          "evidence_span_id": "66756184-4669-4407-87a4-4ac339032f4a",
+          "extractor_name": "realworld-validation",
+          "extractor_version": "1",
+          "supersedes_assertion_id": "1934a966-5d4f-4e80-b94d-679aea1bee77"
+        },
+        {
+          "assertion_id": "0d6340ac-438c-4925-9782-7c643a67eae8",
+          "tenant_id": "validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6",
+          "entity_id": "vendor-acme",
+          "attribute": "funding_rate",
+          "value": 0.11,
+          "unit": null,
+          "scope": {},
+          "valid_from": "2026-04-01T00:00:00Z",
+          "valid_to": null,
+          "recorded_at": "2026-04-05T00:00:00Z",
+          "status": "candidate",
+          "confidence": null,
+          "source_id": "bd1bd48d-0721-42b5-be0a-ce5b52ebe888",
+          "evidence_span_id": "d50d309f-dcd8-4c06-8d7f-f194f19b6d2f",
+          "extractor_name": "realworld-validation",
+          "extractor_version": "1",
+          "supersedes_assertion_id": null
+        }
+      ]
+    },
+    {
+      "name": "conflict detection",
+      "passed": true,
+      "detail": "[{'entity_id': 'vendor-acme', 'attribute': 'funding_rate', 'unit': None, 'scope': {}, 'assertion_ids': ['6e1ee8be-dc8b-498e-a080-fdd7ffa70e10', '0d6340ac-438c-4925-9782-7c643a67eae8']}]"
+    },
+    {
+      "name": "context is bounded",
+      "passed": true,
+      "detail": "3"
+    },
+    {
+      "name": "historical context compiles",
+      "passed": true,
+      "detail": "{\"case_id\":\"case-5584ec2d-48f1-47d0-a028-2e3f9ed0ccb4\",\"task\":\"What funding rate was valid in February?\",\"workflow_state\":{\"case_id\":\"case-5584ec2d-48f1-47d0-a028-2e3f9ed0ccb4\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"stage\":\"analysis\",\"goal\":\"Determine the current funding terms\",\"completed_steps\":[\"ingestion\",\"extraction\"],\"pending_steps\":[\"context_review\"],\"unresolved_conflicts\":[],\"tool_results\":[],\"approval_state\":null,\"checkpoint\":\"assertions_loaded\",\"retry_count\":0,\"model_version\":\"validation-model\",\"prompt_version\":\"validation-prompt-v1\",\"updated_at\":\"2026-05-01T00:00:00Z\"},\"assertions\":[{\"assertion_id\":\"1934a966-5d4f-4e80-b94d-679aea1bee77\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"entity_id\":\"vendor-acme\",\"attribute\":\"funding_rate\",\"value\":0.1,\"unit\":null,\"scope\":{},\"valid_from\":\"2026-01-01T00:00:00Z\",\"valid_to\":\"2026-04-01T00:00:00Z\",\"recorded_at\":\"2026-01-01T00:00:00Z\",\"status\":\"superseded\",\"confidence\":null,\"source_id\":\"ae7dbce4-2e99-4434-9c67-d62f98dac398\",\"evidence_span_id\":\"935d15d0-d3ca-4757-83e0-198619101e88\",\"extractor_name\":\"realworld-validation\",\"extractor_version\":\"1\",\"supersedes_assertion_id\":null}],\"evidence\":[{\"span_id\":\"66756184-4669-4407-87a4-4ac339032f4a\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"source_id\":\"42e50438-ed0f-4d67-a4d7-f69754ee444b\",\"start_offset\":0,\"end_offset\":65,\"text\":\"April amendment changes funding rate to 12% effective 2026-04-01.\"},{\"span_id\":\"6500ec7b-d6a6-4687-af72-e391f4577600\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"source_id\":\"8a5a79f2-f721-4b67-a523-0752cd17bb3d\",\"start_offset\":0,\"end_offset\":70,\"text\":\"Negotiation email confirms the final funding rate is 12% from April 1.\"},{\"span_id\":\"d50d309f-dcd8-4c06-8d7f-f194f19b6d2f\",\"tenant_id\":\"validation-f81badf0-5a7c-45a0-9ec3-c5a167d2a2b6\",\"source_id\":\"bd1bd48d-0721-42b5-be0a-ce5b52ebe888\",\"start_offset\":0,\"end_offset\":55,\"text\":\"Earlier negotiation draft proposed an 11% funding rate.\"}],\"relationships\":[],\"conflicts\":[],\"bounded\":true}"
+    },
+    {
+      "name": "historical temporal correctness",
+      "passed": true,
+      "detail": "{0.1}"
+    },
+    {
+      "name": "hybrid retrieval finds relevant evidence",
+      "passed": true,
+      "detail": "April amendment changes funding rate to 12% effective 2026-04-01. Negotiation email confirms the final funding rate is 12% from April 1. Earlier negotiation draft proposed an 11% funding rate."
+    },
+    {
+      "name": "tenant isolation",
+      "passed": true,
+      "detail": "April amendment changes funding rate to 12% effective 2026-04-01. Negotiation email confirms the final funding rate is 12% from April 1. Earlier negotiation draft proposed an 11% funding rate."
+    },
+    {
+      "name": "span idempotency",
+      "passed": true,
+      "detail": "{\"span_id\":\"66756184-4669-4407-87a4-4ac339032f4a\",\"created\":false}"
+    }
+  ],
+  "latency_ms": {
+    "p50": 15.2,
+    "p95": 32.27,
+    "samples": 20
+  }
+}

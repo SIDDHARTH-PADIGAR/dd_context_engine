@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.dialects.postgresql import insert
 
 from dd_context_engine.domain.schemas import (
@@ -88,15 +88,35 @@ class PostgresAssertionRepository:
 
         async with session_factory() as session:
             async with session.begin():
-                stmt = insert(AssertionRecord).values(**values).on_conflict_do_nothing(
+                stmt = insert(
+                    AssertionRecord
+                ).values(**values).on_conflict_do_nothing(
                     constraint="uq_assertion_tenant_id"
                 )
+
                 result = await session.execute(stmt)
 
                 if not result.rowcount:
                     return False
 
                 if assertion.supersedes_assertion_id is not None:
+                    update_values = {
+                        "status": "superseded",
+                    }
+
+                    if assertion.valid_from is not None:
+                        update_values["valid_to"] = case(
+                            (
+                                AssertionRecord.valid_to.is_(None),
+                                assertion.valid_from,
+                            ),
+                            (
+                                AssertionRecord.valid_to > assertion.valid_from,
+                                assertion.valid_from,
+                            ),
+                            else_=AssertionRecord.valid_to,
+                        )
+
                     await session.execute(
                         AssertionRecord.__table__.update()
                         .where(
@@ -104,7 +124,7 @@ class PostgresAssertionRepository:
                             AssertionRecord.assertion_id
                             == assertion.supersedes_assertion_id,
                         )
-                        .values(status="superseded")
+                        .values(**update_values)
                     )
 
             return True

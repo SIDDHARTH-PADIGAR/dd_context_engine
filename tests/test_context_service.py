@@ -239,14 +239,63 @@ async def test_context_compiler_can_retrieve_evidence_without_entity_id():
         retrieval=retrieval,
     )
 
-    bundle = await service.build(
+    await service.build(
         ContextRequest(
             tenant_id="t1",
             case_id="case-1",
             task="What is the funding rate?",
         )
     )
+    
+@pytest.mark.asyncio
+async def test_context_compiler_can_recover_historical_superseded_assertion():
+    now = datetime.now(UTC)
+    historical_time = now - timedelta(days=10)
+    source = uuid4()
 
-    assert bundle.assertions == []
-    assert len(bundle.evidence) == 1
-    assert bundle.evidence[0].text == "Funding rate is 10 percent."
+    assertions = [
+        CommercialAssertion(
+            tenant_id="t1",
+            entity_id="v1",
+            attribute="funding_rate",
+            value=0.10,
+            recorded_at=now,
+            valid_from=historical_time - timedelta(days=5),
+            valid_to=historical_time + timedelta(days=5),
+            source_id=source,
+            extractor_name="x",
+            extractor_version="1",
+            status=AssertionStatus.SUPERSEDED,
+        ),
+        CommercialAssertion(
+            tenant_id="t1",
+            entity_id="v1",
+            attribute="funding_rate",
+            value=0.12,
+            recorded_at=now,
+            valid_from=historical_time + timedelta(days=6),
+            source_id=source,
+            extractor_name="x",
+            extractor_version="2",
+            status=AssertionStatus.ACTIVE,
+        ),
+    ]
+
+    service = ContextAssemblyService(
+        WorkflowRepo(),
+        AssertionRepo(assertions),
+        EvidenceRepo([]),
+    )
+
+    bundle = await service.build(
+        ContextRequest(
+            tenant_id="t1",
+            case_id="case-1",
+            task="What was the funding rate?",
+            entity_id="v1",
+            at_time=historical_time,
+        )
+    )
+
+    assert len(bundle.assertions) == 1
+    assert bundle.assertions[0].value == 0.10

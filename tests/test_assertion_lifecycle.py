@@ -92,6 +92,7 @@ async def test_assertion_supersession_is_transactional_and_historical():
         assert stored_b.status == AssertionStatus.ACTIVE.value
         assert stored_a.value == 0.10
         assert stored_b.value == 0.12
+        assert stored_a.valid_to == assertion_b.valid_from
 
         tenant_assertions = await repository.find(
             tenant_id=tenant_id,

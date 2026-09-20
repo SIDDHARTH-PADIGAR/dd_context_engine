@@ -185,7 +185,7 @@ class ContextAssemblyService:
         if at_time is None:
             return True
 
-        if assertion.status in {
+        if at_time is None and assertion.status in {
             AssertionStatus.SUPERSEDED,
             AssertionStatus.HISTORICAL,
         }:
@@ -214,7 +214,8 @@ class ContextAssemblyService:
         relevant = [
             assertion
             for assertion in assertions
-            if assertion.status
+            if at_time is not None
+            or assertion.status
             not in {
                 AssertionStatus.SUPERSEDED,
                 AssertionStatus.HISTORICAL,
