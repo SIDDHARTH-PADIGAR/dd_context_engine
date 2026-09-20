@@ -16,21 +16,17 @@ The core decision is:
 
 > **I keep durable truth outside the model and make the model consume a small, task-specific working set.**
 
-That gives me a system where the model can reason without becoming the database, the audit log, or the source of truth.
-
 ---
 
 ## The problem I started from
 
-A useful question like:
+A question like:
 
 > "What funding rate applies to this vendor?"
 
-can depend on much more than the latest email.
+may depend on a contract, an amendment, a negotiation email, the extracted commercial term, the evidence supporting it, and the current workflow state.
 
-The system may need to connect a contract, an amendment, an extracted commercial term, the evidence supporting that term, and the current workflow state of the case.
-
-That immediately creates four different kinds of state:
+That creates four different kinds of state:
 
 | State               | What I keep there                                    |
 | ------------------- | ---------------------------------------------------- |
@@ -57,17 +53,17 @@ That led me to move durable state into persistence and make context something as
 
 [Generative Agents](https://arxiv.org/abs/2304.03442) reinforced the retrieval side of the design: do not replay an entire history every time the agent reasons.
 
-I applied that idea to enterprise data by building a retrieval path from:
+I applied that to enterprise data through:
 
 **PostgreSQL lexical search + pgvector semantic search → hybrid RRF ranking → context compiler**
 
-The important part is not just having search. Retrieval happens before context compilation, so the model sees a bounded working set rather than an ever-growing history.
+Retrieval happens before context compilation, so the model receives a bounded working set instead of an ever-growing history.
 
 ### CoALA — what belongs inside the agent and what does not?
 
 [CoALA](https://arxiv.org/abs/2309.02427) helped me separate memory, actions and reasoning.
 
-That became a concrete boundary:
+That became:
 
 | Concern                   | System boundary        |
 | ------------------------- | ---------------------- |
@@ -77,31 +73,27 @@ That became a concrete boundary:
 | Reasoning                 | Model                  |
 | Actions                   | Typed agent tools      |
 
-That separation means I can replace the model, retrieval backend or extraction model without rewriting the underlying state model.
+That separation lets the underlying state model stay independent of the model or retrieval implementation.
 
 ### Mem0 — should memory and graph be treated as magic?
 
-[Mem0](https://arxiv.org/abs/2504.19413) was useful mainly because it made me more conservative.
+[Mem0](https://arxiv.org/abs/2504.19413) made me more conservative.
 
-The results support selective persistent memory, but the graph results are not strong enough to justify making a graph authoritative for every question.
+The results support selective persistent memory, but they do not justify making a graph authoritative for every question.
 
-So I made the graph **optional and derived**.
-
-That gives me:
+So I made the graph **optional and derived**:
 
 **PostgreSQL + evidence → authoritative state**
 
 **Neo4j → relationship retrieval / traversal**
 
-The graph can help answer relationship-heavy questions without becoming the place where financial truth lives.
-
-These papers support the direction of the architecture. They do not prove that the same numbers will hold for Discover Dollar's workload, so I have kept that boundary explicit.
+The papers support the direction of the design. They do not prove that the same results will transfer directly to Discover Dollar's workload.
 
 ---
 
 ## Why I version assertions instead of overwriting facts
 
-This was one of the first places where a toy implementation would fall apart.
+This was one of the first places where a basic implementation would break down.
 
 Suppose I extract:
 
@@ -112,11 +104,11 @@ Suppose I extract:
 
 I do not turn `10%` into `12%`.
 
-I keep both assertions and record the relationship between them through:
+I keep both assertions and record:
 
 `valid_from` · `valid_to` · `recorded_at` · `status` · `source_id` · `evidence_span_id` · `extractor_version` · `supersedes_assertion_id`
 
-Now the system can distinguish:
+That lets the system distinguish:
 
 **"What is the current rate?"**
 
@@ -128,8 +120,6 @@ from
 
 **"Which evidence caused the change?"**
 
-That is much closer to the problem I was actually trying to solve.
-
 ---
 
 ## Why provenance is part of the data model
@@ -140,9 +130,7 @@ The lineage is explicit:
 
 **agent output → assertion → evidence span → source record → original document**
 
-An extracted fact therefore carries enough information to trace it back to evidence.
-
-That also gives the system a clean place to attach extractor/model versions instead of pretending an extraction is timeless.
+An extracted fact therefore carries a path back to evidence, along with the extractor/model version used to produce it.
 
 ---
 
@@ -182,16 +170,16 @@ flowchart TD
     M --> E
 ```
 
-The diagram is backed by concrete implementation choices:
+The architecture is backed by concrete implementation choices:
 
-| Problem I expect at scale               | Decision I made                         |
+| Problem                                 | Decision                                |
 | --------------------------------------- | --------------------------------------- |
 | Duplicate ingestion                     | Stable, tenant-scoped identifiers       |
 | Changing business terms                 | Versioned assertions + supersession     |
 | Historical queries                      | Temporal validity instead of overwrites |
-| Untraceable model answers               | Evidence spans + provenance             |
-| Growing context windows                 | Retrieval before context compilation    |
-| Retrieval lock-in                       | Retrieval interfaces                    |
+| Untraceable answers                     | Evidence spans + provenance             |
+| Growing context                         | Retrieval before context compilation    |
+| Retrieval lock-in                       | Repository interfaces                   |
 | Graph becoming a second source of truth | Graph kept derived and optional         |
 | Failed long-running work                | Durable workflow checkpoints            |
 | Schema drift                            | Alembic migrations                      |
@@ -199,7 +187,44 @@ The diagram is backed by concrete implementation choices:
 
 I have not claimed a benchmark at Discover Dollar's production scale because I do not have their data or workload.
 
-What I have done is make the architecture capable of growing in the right dimensions without forcing the model to carry the entire enterprise state in its context window.
+What I have built is a persistence and retrieval path that is designed around explicit boundaries, transactions, tenant isolation and bounded context rather than putting the entire enterprise history into the model.
+
+---
+
+## Validation
+
+After the implementation was green, I ran it as a system rather than relying only on unit tests.
+
+The validation scenario used synthetic enterprise data representing a contract, an amendment, negotiation emails, an invoice and a second tenant.
+
+It exercised:
+
+**ingestion → evidence → assertions → retrieval → context assembly → workflow state**
+
+The scenario used:
+
+* **6 sources**
+* **6 evidence spans**
+* **3 assertions**
+* **6 embeddings**
+
+It verified:
+
+* current and historical terms
+* assertion supersession
+* provenance back to the supporting evidence
+* conflict detection
+* hybrid retrieval
+* tenant isolation
+* duplicate-write idempotency
+* durable workflow state
+* bounded context
+
+The measured local result was:
+
+**20 automated tests passing · validation scenario PASS · 15.20 ms p50 · 32.27 ms p95**
+
+The latency numbers are from this synthetic validation workload, not a production SLA or a claim about Discover Dollar's eventual workload.
 
 ---
 
@@ -256,8 +281,9 @@ What I have done is make the architecture capable of growing in the right dimens
 * Alembic migrations
 * PostgreSQL integration tests
 * API integration tests
+* Real-world validation scenario
 * Repository interfaces
-* Linting
+* Ruff linting
 
 ---
 
@@ -269,8 +295,4 @@ It is the part of the system I can justify from the available problem definition
 
 **Enterprise evidence → durable, versioned state → retrieval → controlled context → agent reasoning**
 
-That is the design I chose because it gives the agent persistent memory without making the model responsible for persistence, provenance, temporal truth, workflow recovery or the entire enterprise history.
-
-The current implementation has:
-
-**19 passing tests · Ruff clean · Alembic migrations applied successfully**
+That is the design I chose because it gives an agent persistent memory without making the model responsible for persistence, provenance, temporal truth, workflow recovery or the entire enterprise history.
